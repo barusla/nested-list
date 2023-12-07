@@ -1,11 +1,11 @@
 import * as Dom from './utils/dom';
 import Caret from './utils/caret';
-import { IconListBulleted, IconListNumbered } from '@codexteam/icons';
+import { ListAlphaRoman, ListAlphabet, ListNumberAlpha, ListNumbered, ListUnordered } from './icons/ListIcons';
 
 /**
  * Build styles
  */
-import './../styles/index.pcss';
+import './styles/index.pcss';
 
 /**
  * @typedef {object} ListData
@@ -51,7 +51,7 @@ export default class NestedList {
    */
   static get toolbox() {
     return {
-      icon: IconListNumbered,
+      icon: ListNumbered,
       title: 'List',
     };
   }
@@ -82,7 +82,6 @@ export default class NestedList {
      */
     this.defaultListStyle = this.config.defaultStyle === 'ordered'  ? 'ordered' : 'unordered';
 
-
     const initialData = {
       style: this.defaultListStyle,
       items: [],
@@ -103,7 +102,6 @@ export default class NestedList {
    */
   render() {
     this.nodes.wrapper = this.makeListWrapper(this.data.style, [ this.CSS.baseBlock ]);
-
     // fill with data
     if (this.data.items.length) {
       this.appendItems(this.data.items, this.nodes.wrapper);
@@ -148,13 +146,28 @@ export default class NestedList {
     const tunes = [
       {
         name: 'unordered',
-        label: this.api.i18n.t('Unordered'),
-        icon: IconListBulleted,
+        label: this.api.i18n.t('Odrážky'),
+        icon: ListUnordered,
       },
       {
         name: 'ordered',
-        label: this.api.i18n.t('Ordered'),
-        icon: IconListNumbered,
+        label: this.api.i18n.t('Číslovaný'),
+        icon: ListNumbered,
+      },     
+      {
+        name: 'alphabet',
+        label: this.api.i18n.t('Abecední'),
+        icon: ListAlphabet,
+      },
+      {
+        name: 'numberalpha',
+        label: this.api.i18n.t('Čísla a písmena'),
+        icon: ListNumberAlpha,
+      },
+      {
+        name: 'alpharoman',
+        label: this.api.i18n.t('Písmena a římská č.'),
+        icon: ListAlphaRoman,
       },
     ];
 
@@ -353,10 +366,27 @@ export default class NestedList {
    */
   makeListWrapper(style = this.listStyle, classes = []) {
     const tag = style === 'ordered' ? 'ol' : 'ul';
-    const styleClass = style === 'ordered' ? this.CSS.wrapperOrdered : this.CSS.wrapperUnordered;
+    const styleClass = () => {
+      let styleWrapper;
+      switch(style) {
+        case 'ordered':
+          styleWrapper = this.CSS.wrapperOrdered;
+          break;
+        case 'unordered':
+          styleWrapper = this.CSS.wrapperUnordered;
+          break;
+        case 'numberalpha':
+          styleWrapper = this.CSS.wrapperNumberAlpha;
+          break;
+        case 'alphabet':
+          styleWrapper = this.CSS.wrapperAlphabet;
+          break;
+        case 'alpharoman':
+          styleWrapper = this.CSS.wrapperAlpharoman;
+      } return styleWrapper;
+    }
 
-    classes.push(styleClass);
-
+    classes.push(styleClass());
     return Dom.make(tag, [this.CSS.wrapper, ...classes]);
   }
 
@@ -370,8 +400,11 @@ export default class NestedList {
     return {
       baseBlock: this.api.styles.block,
       wrapper: 'cdx-nested-list',
-      wrapperOrdered: 'cdx-nested-list--ordered',
       wrapperUnordered: 'cdx-nested-list--unordered',
+      wrapperOrdered: 'cdx-nested-list--ordered',
+      wrapperAlphabet: 'cdx-nested-list--alphabet',
+      wrapperNumberAlpha: 'cdx-nested-list--numberalpha',
+      wrapperAlpharoman: 'cdx-nested-list--alpharoman',
       item: 'cdx-nested-list__item',
       itemBody: 'cdx-nested-list__item-body',
       itemContent: 'cdx-nested-list__item-content',
@@ -408,13 +441,15 @@ export default class NestedList {
      * Add main wrapper to the list
      */
     lists.push(this.nodes.wrapper);
-
     /**
      * For each list we need to update classes
      */
     lists.forEach(list => {
       list.classList.toggle(this.CSS.wrapperUnordered, style === 'unordered');
       list.classList.toggle(this.CSS.wrapperOrdered, style === 'ordered');
+      list.classList.toggle(this.CSS.wrapperAlphabet, style === 'alphabet');
+      list.classList.toggle(this.CSS.wrapperNumberAlpha, style === 'numberalpha');
+      list.classList.toggle(this.CSS.wrapperAlpharoman, style === 'alpharoman');
     });
 
     /**
@@ -458,13 +493,6 @@ export default class NestedList {
      * Prevent browser behaviour
      */
     event.preventDefault();
-
-    /**
-     * Prevent duplicated event in Chinese, Japanese and Korean languages
-     */
-    if (event.isComposing) {
-      return;
-    }
 
     /**
      * On Enter in the last empty item, get out of list
