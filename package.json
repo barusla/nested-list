@@ -15,7 +15,6 @@
     "dist"
   ],
   "main": "./dist/nested-list.umd.js",
-  "module": "./dist/nested-list.mjs",
   "exports": {
     ".": {
       "import": "./dist/nested-list.mjs",
